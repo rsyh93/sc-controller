@@ -1,7 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # Used to generate some icons
 # Requires inkscape and imagemagick pacages
 
+from __future__ import print_function
+from builtins import range
 import os, subprocess, colorsys
 from xml.etree import ElementTree as ET
 
@@ -21,7 +23,7 @@ RECOLORS = {							# Defines set of hue shifts for controller-icons
 # Generate svg state icons
 for size in (24, 256):
 	for state in ('alive', 'dead', 'error', 'unknown'):
-		print "scc-statusicon-%s.png" % (state,)
+		print("scc-statusicon-%s.png" % (state,))
 		subprocess.call([
 			"inkscape",
 			"%s/scc-statusicon-%s.svg" % (ICODIR, state),
@@ -40,7 +42,7 @@ def html_to_rgb(html):
 		return 0, 0, 0, 0
 	elif len(html) != 8:
 		raise ValueError("Needs RRGGBB(AA) format, got '%s'" % (html, ))
-	return tuple(( float(int(html[i:i+2],16)) / 255.0 for i in xrange(0, len(html), 2) ))
+	return tuple(( float(int(html[i:i+2],16)) / 255.0 for i in range(0, len(html), 2) ))
 
 
 def rgb_to_html(r,g,b):
@@ -89,4 +91,4 @@ for tp in ("sc", "scbt", "fake", "ds4", "hid", "rpad"):
 		
 		out = "%s/%s-%s.svg" % (CICONS, tp, key)
 		file(out, "w").write(ET.tostring(tree))
-		print out
+		print(out)

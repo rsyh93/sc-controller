@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 SC-Controller - Timer manager
 
@@ -6,6 +6,7 @@ Simple abstract class for named, cancelable timers
 """
 
 from __future__ import unicode_literals
+from builtins import object
 from gi.repository import GLib
 
 class TimerManager(object):

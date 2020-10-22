@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 SC-Controller - Icon Chooser
 """
@@ -151,7 +151,7 @@ class IconChooser(Editor, UserDataManager):
 				pb = None
 				try:
 					pb = GdkPixbuf.Pixbuf.new_from_file(f.get_path())
-				except Exception, e:
+				except Exception as e:
 					log.error(e)
 					log.error(traceback.format_exc())
 					continue

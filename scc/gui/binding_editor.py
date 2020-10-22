@@ -1,10 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 SC-Controller - BindingEditor
 
 Base class for main application window and OSD Keyboard bindings editor.
 """
 from __future__ import unicode_literals
+from builtins import object
 from scc.tools import _
 
 from scc.modifiers import ModeModifier, SensitivityModifier, FeedbackModifier

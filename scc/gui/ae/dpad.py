@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 SC-Controller - Action Editor - "DPAD or Menu"
@@ -6,6 +6,7 @@ SC-Controller - Action Editor - "DPAD or Menu"
 Setups DPAD emulation or menu display
 """
 from __future__ import unicode_literals
+from builtins import range
 from scc.tools import _
 
 from gi.repository import Gtk, Gdk, GLib
@@ -78,9 +79,9 @@ class DPADComponent(AEComponent, MenuActionCofC, BindingEditor):
 	
 	
 	def update_button_desc(self, action):
-		for i in xrange(0, len(action.actions)):
+		for i in range(0, len(action.actions)):
 			self.actions[i] = action.actions[i]
-		for i in xrange(0, 8):
+		for i in range(0, 8):
 			self.set_button_desc(i)
 	
 	

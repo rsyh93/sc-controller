@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 XInput tools
@@ -23,6 +23,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 """
 from __future__ import unicode_literals
 
+from builtins import str
+from builtins import object
 import logging, re, subprocess
 log = logging.getLogger("XI")
 

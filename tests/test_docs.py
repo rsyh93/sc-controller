@@ -1,3 +1,4 @@
+from builtins import object
 from scc.actions import Action
 
 import os
@@ -15,8 +16,8 @@ class TestDocs(object):
 		Tests if every known Action is documentated in docs/actions.md
 		"""
 		# Read docs first
-		actions_md = file("docs/actions.md", "r").read()
-		profile_md = file("docs/profile-file.md", "r").read()
+		actions_md = open("docs/actions.md", "r").read()
+		profile_md = open("docs/profile-file.md", "r").read()
 		
 		# Do stupid fulltext search, because currently it's simply fast enough
 		for command in Action.ALL:
