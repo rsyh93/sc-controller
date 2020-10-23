@@ -14,7 +14,7 @@ import os, ctypes, fcntl, re, logging
 
 log = logging.getLogger("DevMon")
 
-RE_BT_NUMBERS = re.compile(r"[0-9A-F]{4}:([0-9A-F]{4}):([0-9A-F]{4}).*")
+RE_BT_NUMBERS = re.compile(rb"[0-9A-F]{4}:([0-9A-F]{4}):([0-9A-F]{4}).*")
 HCIGETCONNLIST = IOR(ord('H'), 212, ctypes.c_int)
 HAVE_BLUETOOTH_LIB = False
 try:
@@ -68,11 +68,12 @@ class DeviceMonitor(Monitor):
 		poller = self.daemon.poller
 		poller.register(self.fileno(), poller.POLLIN, self.on_data_ready)
 		Monitor.start(self)
+		log.info("Device monitor started.")
 	
 	
 	def _on_new_syspath(self, subsystem, syspath):
 		try:
-			if subsystem == "input":
+			if subsystem == b"input":
 				vendor, product = None, None
 			else:
 				vendor, product = self.get_vendor_product(syspath, subsystem)
@@ -117,12 +118,12 @@ class DeviceMonitor(Monitor):
 		"""
 		For given syspath leading to ../hciX:ABCD, returns input device node
 		"""
-		name = syspath.split("/")[-1]
-		if ":" not in name:
+		name = syspath.split(b"/")[-1]
+		if b":" not in name:
 			return None
 		addr = self.bt_addresses.get(name)
-		for fname in os.listdir("/sys/bus/hid/devices/"):
-			node = os.path.join("/sys/bus/hid/devices/", fname)
+		for fname in os.listdir(b"/sys/bus/hid/devices/"):
+			node = os.path.join(b"/sys/bus/hid/devices/", fname)
 			try:
 				node_addr = DeviceMonitor._find_bt_address(node)
 			except IOError:
@@ -135,16 +136,16 @@ class DeviceMonitor(Monitor):
 	def on_data_ready(self, *a):
 		event = self.receive_device()
 		if event:
-			if event.action == "bind" and event.initialized:
+			if event.action == b"bind" and event.initialized:
 				if event.syspath not in self.known_devs:
 					self._on_new_syspath(event.subsystem, event.syspath)
-			elif event.action == "add" and event.initialized and event.subsystem in ("input", "bluetooth"):
+			elif event.action == b"add" and event.initialized and event.subsystem in (b"input", b"bluetooth"):
 				# those are not bound
 				if event.syspath not in self.known_devs:
-					if event.subsystem == "bluetooth":
+					if event.subsystem == b"bluetooth":
 						self._get_hci_addresses()
 					self._on_new_syspath(event.subsystem, event.syspath)
-			elif event.action in ("remove", "unbind") and event.syspath in self.known_devs:
+			elif event.action in (b"remove", b"unbind") and event.syspath in self.known_devs:
 				vendor, product, cb = self.known_devs.pop(event.syspath)
 				if cb:
 					cb(event.syspath, vendor, product)
@@ -167,7 +168,7 @@ class DeviceMonitor(Monitor):
 			if syspath not in self.known_devs:
 				try:
 					subsystem = DeviceMonitor.get_subsystem(syspath)
-				except (IOError, OSError):
+				except (IOError, OSError) as e:
 					continue
 				if subsystem in subsystem_to_vp_to_callback:
 					self._on_new_syspath(subsystem, syspath)
@@ -179,13 +180,13 @@ class DeviceMonitor(Monitor):
 		
 		May throw all kinds of OSErrors or IOErrors
 		"""
-		if os.path.exists(os.path.join(syspath, "idVendor")):
-			vendor  = int(open(os.path.join(syspath, "idVendor")).read().strip(), 16)
-			product = int(open(os.path.join(syspath, "idProduct")).read().strip(), 16)
+		if os.path.exists(os.path.join(syspath, b"idVendor")):
+			vendor  = int(open(os.path.join(syspath, b"idVendor")).read().strip(), 16)
+			product = int(open(os.path.join(syspath, b"idProduct")).read().strip(), 16)
 			return vendor, product
 		if subsystem is None:
 			subsystem = DeviceMonitor.get_subsystem(syspath)
-		if subsystem == "bluetooth":
+		if subsystem == b"bluetooth":
 			# Search for folder that matches regular expression...
 			names = [ name for name in os.listdir(syspath)
 				if os.path.isdir(syspath) and RE_BT_NUMBERS.match(name) ]
@@ -196,7 +197,7 @@ class DeviceMonitor(Monitor):
 			# For that one, following desperate mess is needed
 			node = self._dev_for_hci(syspath)
 			if node:
-				name = node.split("/")[-1]
+				name = node.split(b"/")[-1]
 				if RE_BT_NUMBERS.match(name):
 					vendor, product = [ int(x, 16) for x in RE_BT_NUMBERS.match(name).groups() ]
 					return vendor, product
@@ -211,9 +212,9 @@ class DeviceMonitor(Monitor):
 		node = self._dev_for_hci(syspath)
 		if node is None:
 			return None
-		hidrawsubdir = os.path.join(node, "hidraw")
+		hidrawsubdir = os.path.join(node, b"hidraw")
 		for fname in os.listdir(hidrawsubdir):
-			if fname.startswith("hidraw"):
+			if fname.startswith(b"hidraw"):
 				return fname
 		return None
 	
@@ -224,11 +225,11 @@ class DeviceMonitor(Monitor):
 		Recursivelly searchs for "input*" subdirectories until "uniq" file
 		is found. Then, returns address from that file.
 		"""
-		uniq = os.path.join(syspath, "uniq")
+		uniq = os.path.join(syspath, b"uniq")
 		if os.path.exists(uniq):
-			return open(uniq, "r").read().strip()
+			return open(uniq, "rb").read().strip()
 		for name in os.listdir(syspath):
-			if name.startswith("input"):
+			if name.startswith(b"input"):
 				path = os.path.join(syspath, name)
 				if os.path.isdir(path) and not os.path.islink(path):
 					addr = DeviceMonitor._find_bt_address(path)
@@ -243,8 +244,8 @@ class DeviceMonitor(Monitor):
 		
 		May throw all kinds of OSErrors or IOErrors
 		"""
-		busnum  = int(open(os.path.join(syspath, "busnum")).read().strip())
-		devnum = int(open(os.path.join(syspath, "devnum")).read().strip())
+		busnum  = int(open(os.path.join(syspath, b"busnum")).read().strip())
+		devnum = int(open(os.path.join(syspath, b"devnum")).read().strip())
 		return busnum, devnum
 	
 	
@@ -255,7 +256,7 @@ class DeviceMonitor(Monitor):
 		
 		May throw OSError if directory is not readable.
 		"""
-		return os.readlink(os.path.join(syspath, "subsystem")).split("/")[-1]
+		return os.readlink(os.path.join(syspath, b"subsystem")).split(b"/")[-1]
 
 
 class hci_conn_info(ctypes.Structure):

@@ -251,10 +251,12 @@ class DaemonManager(GObject.GObject):
 		"""
 		Creates request and remembers callback for next 'Ok' or 'Fail' message.
 		"""
+		if isinstance(message, str):
+		    message = bytes(message, 'utf-8')
 		if self.alive and self.connection is not None:
 			self._requests.append(( success_cb, error_cb ))
 			(self.connection.get_output_stream()
-				.write_all(message.encode('utf-8') + b'\n', None))
+				.write_all(message + b'\n', None))
 		else:
 			# Instant failure
 			error_cb("Not connected.")

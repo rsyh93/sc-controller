@@ -126,7 +126,7 @@ def nameof(e):
 
 def shjoin(lst):
 	""" Joins list into shell-escaped, utf-8 encoded string """
-	s = [ str(x) for x in lst ]
+	s = [ bytes(x, 'utf-8') for x in lst ]
 	#   - escape quotes
 	s = [ x if (b'"' in x or b"'" in x) else x for x in s ]
 	#   - quote strings with spaces

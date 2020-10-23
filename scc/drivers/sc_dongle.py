@@ -174,7 +174,7 @@ class SCController(Controller):
 		self._input_rotation_r = 0
 		self._led_level = 10
 		# TODO: Is serial really used anywhere?
-		self._serial = "0000000000"
+		self._serial = b"0000000000"
 		self._id = self._generate_id() if driver else "-"
 		self._old_state = SCI_NULL
 		self._ccidx = ccidx
@@ -242,7 +242,7 @@ class SCController(Controller):
 		def cb(rawserial):
 			size, serial = struct.unpack(">xBx12s49x", rawserial)
 			if size > 1:
-				serial = serial.strip(" \x00")
+				serial = serial.strip(b" \x00")
 				self._serial = serial
 				self.on_serial_got()
 			else:
@@ -269,13 +269,13 @@ class SCController(Controller):
 		except UnicodeDecodeError:
 			log.debug("Failed to decode wireless SC serial")
 			self._serial = self._driver._available_serials.pop()
-		self._id = str(self._serial)
+		self._id = self._serial.decode('utf-8')
 		self._driver.daemon.add_controller(self)
 	
 	
 	def apply_config(self, config):
 		self.configure(idle_timeout=int(config['idle_timeout']),
-				led_level=float(config['led_level']))
+				led_level=int(config['led_level']))
 		self._input_rotation_l = old_div(float(config['input_rotation_l']) * PI, -180.0)
 		self._input_rotation_r = old_div(float(config['input_rotation_r']) * PI, -180.0)
 	
@@ -286,9 +286,9 @@ class SCController(Controller):
 		if Config()["ignore_serials"]:
 			self._driver._available_serials.add(self._serial)
 	
-	FORMAT1 = b'>BBBBB13sB2s43x'
+	FORMAT1 = '>BBBBB13sB2s43x'
 	# Has to be overriden in sc_by_cable
-	FORMAT2 = b'>BBBB59x'
+	FORMAT2 = '>BBBB59x'
 	
 	def configure(self, idle_timeout=None, enable_gyros=None, led_level=None):
 		"""
@@ -328,9 +328,9 @@ class SCController(Controller):
 		
 		# Timeout & Gyros
 		self._driver.overwrite_control(self._ccidx, struct.pack(self.FORMAT1,
-			SCPacketType.CONFIGURE,
-			SCPacketLength.CONFIGURE,
-			SCConfigType.CONFIGURE,
+			int(SCPacketType.CONFIGURE),
+			int(SCPacketLength.CONFIGURE),
+			int(SCConfigType.CONFIGURE),
 			timeout1, timeout2,
 			unknown1,
 			0x14 if self._enable_gyros else 0,

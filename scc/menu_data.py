@@ -163,7 +163,7 @@ class MenuData(object):
 		Loads menu from file-like object.
 		Actions are parsed only if action_parser is set to ActionParser instance.
 		"""
-		data = json.loads(fileobj.read())
+		data = json.load(fileobj)
 		return MenuData.from_json_data(data, action_parser)
 	
 	
@@ -173,7 +173,7 @@ class MenuData(object):
 		Loads menu from file.
 		Actions are parsed only if action_parser is set to ActionParser instance.
 		"""
-		return MenuData.from_fileobj(file(filename, "r"), action_parser)
+		return MenuData.from_fileobj(open(filename, "r"), action_parser)
 	
 	
 	@staticmethod

@@ -14,13 +14,13 @@ from past.utils import old_div
 from scc.tools import _
 
 from gi.repository import Gtk, Gdk, GObject, GdkPixbuf, Rsvg
-from xml.etree import ElementTree as ET
+from lxml import etree as ET
 from math import sin, cos, pi as PI
 from collections import OrderedDict
 import os, sys, re, logging
 
 log = logging.getLogger("Background")
-ET.register_namespace('', "http://www.w3.org/2000/svg")
+ET.register_namespace('svg', "http://www.w3.org/2000/svg")
 
 
 class SVGWidget(Gtk.EventBox):
@@ -58,7 +58,7 @@ class SVGWidget(Gtk.EventBox):
 	
 	
 	def set_image(self, filename):
-		self.current_svg = open(filename, "r").read()
+		self.current_svg = open(filename, "rb").read()
 		self.cache = OrderedDict()
 		self.areas = []
 		self.parse_image()
@@ -202,7 +202,7 @@ class SVGWidget(Gtk.EventBox):
 			# 200 images by hand;
 			if len(buttons) == 0:
 				# Quick way out - changes are not needed
-				svg = Rsvg.Handle.new_from_data(bytes(self.current_svg, 'utf-8'))
+				svg = Rsvg.Handle.new_from_data(self.current_svg)
 			else:
 				# 1st, parse source as XML
 				tree = ET.fromstring(self.current_svg)
@@ -311,7 +311,6 @@ class SVGEditor(object):
 			copy = SVGEditor._deep_copy(ch)
 			e.remove(ch)
 			e.append(copy)
-			copy.parent = e
 		return e
 	
 	
@@ -326,8 +325,7 @@ class SVGEditor(object):
 		e = SVGEditor.get_element(self, id)
 		if e is not None:
 			copy = SVGEditor._deep_copy(e)
-			e.parent.append(copy)
-			copy.parent = e.parent
+			e.getparent().append(copy)
 			return copy
 		return None
 	
@@ -343,7 +341,7 @@ class SVGEditor(object):
 		if type(e) in (str, str):
 			e = SVGEditor.get_element(self, e)
 		if e is not None:
-			e.parent.remove(e)
+			e.getparent().remove(e)
 		return self
 	
 	
@@ -376,15 +374,8 @@ class SVGEditor(object):
 		"""
 		Ensures that parent fields of all tree elements are are set.
 		"""
-		if isinstance(tree, SVGEditor):
-			tree = tree._tree
-		def add_parent(parent):
-			for child in parent:
-				child.parent = parent
-				add_parent(child)
-		add_parent(tree)
-		if not hasattr(tree, "parent"):
-			tree.parent = None
+		# removed
+		pass
 	
 	
 	@staticmethod
@@ -558,13 +549,13 @@ class SVGEditor(object):
 	
 	@staticmethod
 	def get_translation(elm_or_matrix, absolute=False):
-		if isinstance(elm_or_matrix, ET.Element):
+		if ET.iselement(elm_or_matrix):
 			elm = elm_or_matrix
 			matrix = SVGEditor.parse_transform(elm)
-			parent = elm.parent
+			parent = elm.getparent()
 			while parent is not None:
 				matrix = SVGEditor.matrixmul(matrix, SVGEditor.parse_transform(parent))
-				parent = parent.parent
+				parent = parent.getparent()
 		else:
 			matrix = elm_or_matrix
 		
@@ -672,7 +663,7 @@ class SVGEditor(object):
 		
 		Returns created or passed element.
 		"""
-		if not isinstance(e, ET.Element):
+		if not ET.iselement(e):
 			attributes = { k : str(attributes[k]) for k in attributes }
 			e = ET.Element(e, attributes)
 		parent.append(e)
@@ -681,5 +672,5 @@ class SVGEditor(object):
 	
 	@staticmethod
 	def load_from_file(filename):
-		tree = ET.fromstring(open(filename, "r").read())
+		tree = ET.fromstring(open(filename, "rb").read())
 		return SVGEditor.find_by_tag(tree, "g")

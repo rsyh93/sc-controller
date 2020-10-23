@@ -32,7 +32,7 @@ def init(daemon, config):
 
 
 class SCByCable(USBDevice, SCController):
-	FORMAT1 = b'>BBBBB13sB2s'
+	FORMAT1 = '>BBBBB13sB2s'
 	
 	def __init__(self, device, handle, daemon):
 		self.daemon = daemon

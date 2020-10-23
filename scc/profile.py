@@ -49,9 +49,8 @@ class Profile(object):
 	
 	def save(self, filename):
 		""" Saves profile into file. Returns self """
-		fileobj = file(filename, "w")
-		self.save_fileobj(fileobj)
-		fileobj.close()
+		with open(filename, "w") as fileobj:
+		    self.save_fileobj(fileobj)
 		return self
 	
 	
@@ -98,7 +97,7 @@ class Profile(object):
 		
 		Returns self.
 		"""
-		data = json.loads(fileobj.read())
+		data = json.load(fileobj)
 		# Version
 		try:
 			version = float(data["version"])

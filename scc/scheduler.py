@@ -11,6 +11,7 @@ Use schedule(delay, callback, *data) to register one-time task.
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
+from functools import total_ordering
 import time, queue, logging
 log = logging.getLogger("Scheduler")
 
@@ -75,6 +76,7 @@ class Scheduler(object):
 			callback(*data)
 
 
+@total_ordering
 class Task(object):
 	
 	def __init__(self, time, callback, data):
@@ -87,4 +89,10 @@ class Task(object):
 		""" Marks task as canceled, without actually removing it from scheduler """
 		self.callback = lambda *a, **b: False
 		self.data = ()
+
+	def __eq__(self, obj2):
+		return self.time == obj2.time
+
+	def __lt__(self, obj2):
+		return self.time < obj2.time
 

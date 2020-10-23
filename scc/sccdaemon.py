@@ -435,7 +435,7 @@ class SCCDaemon(Daemon):
 			self.xdisplay = None
 			return
 		
-		self.xdisplay = X.open_display(os.environ["DISPLAY"])
+		self.xdisplay = X.open_display(os.environ["DISPLAY"].encode('utf-8'))
 		if self.xdisplay:
 			log.debug("Connected to XServer %s", os.environ["DISPLAY"])
 			
@@ -725,7 +725,7 @@ class SCCDaemon(Daemon):
 		
 		while True:
 			try:
-				line = rfile.readline()
+				line = rfile.readline().decode('utf-8')
 			except Exception:
 				# Connection terminated
 				break
@@ -751,14 +751,14 @@ class SCCDaemon(Daemon):
 		if message.startswith("Profile:"):
 			with self.lock:
 				try:
-					filename = message[8:].decode("utf-8").strip("\t ")
+					filename = message[8:].strip("\t ")
 					self._set_profile(client.mapper, filename)
 					log.info("Loaded profile '%s'", filename)
 					client.wfile.write(b"OK.\n")
 				except Exception as e:
 					exc = traceback.format_exc()
 					log.exception(e)
-					tb = str(exc).encode("utf-8").encode('string_escape')
+					tb = bytes(exc, "utf-8")
 					client.wfile.write(b"Fail: " + tb + b"\n")
 		elif message.startswith("OSD:"):
 			if not self.osd_daemon:

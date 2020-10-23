@@ -368,7 +368,7 @@ class EvdevDriver(object):
 	
 	
 	def start(self):
-		self.daemon.get_device_monitor().add_callback("input", None, None,
+		self.daemon.get_device_monitor().add_callback(b"input", None, None,
 				self.handle_new_device, self.handle_removed_device)
 	
 	
@@ -378,10 +378,10 @@ class EvdevDriver(object):
 	
 	@staticmethod
 	def get_event_node(syspath):
-		filename = syspath.split("/")[-1]
-		if not filename.startswith("event"):
+		filename = syspath.split(b"/")[-1]
+		if not filename.startswith(b"event"):
 			return None
-		return "/dev/input/%s" % (filename, )
+		return b"/dev/input/%s" % (filename, )
 	
 	
 	def handle_new_device(self, syspath, *bunchofnones):
@@ -506,7 +506,7 @@ def get_evdev_devices_from_syspath(syspath):
 	rv = []
 	for name in os.listdir(syspath):
 		path = os.path.join(syspath, name)
-		if name.startswith("event"):
+		if name.startswith(b"event"):
 			eventnode = EvdevDriver.get_event_node(path)
 			if eventnode is not None:
 				try:

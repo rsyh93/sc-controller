@@ -20,7 +20,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 """
 from __future__ import print_function
 
-from builtins import str
 from builtins import object
 from collections import namedtuple
 from ctypes.util import find_library
@@ -172,7 +171,7 @@ class Enumerator(object):
 		if self._enumeration_started:
 			raise RuntimeError("Cannot add match after enumeration is started")
 		fn = getattr(self._eudev._lib, "udev_enumerate_add_" + whichone)
-		pars = [ ctypes.c_char_p(p) for p in pars ]
+		pars = [ ctypes.c_char_p(p and p.encode('utf-8')) if p is str else p for p in pars ]
 		self._keep_in_mem += pars
 		err = fn(self._enumerator, *pars)
 		if err < 0:
@@ -214,12 +213,12 @@ class Enumerator(object):
 		if rv is None:
 			raise OSError("udev_list_entry_get_name failed")
 		self._next = self._eudev._lib.udev_list_entry_get_next(self._next)
-		return str(rv)
+		return rv
 
 
 class Monitor(object):
 	"""
-	Monitor object recieves device events.
+	Monitor object receives device events.
 	receive_device method blocks until next event is processed, so it can be
 	used either in dumb loop, or called when select syscall reports descriptor
 	returned by get_fd has data available.
@@ -248,7 +247,7 @@ class Monitor(object):
 			# Already done
 			return self
 		fn = getattr(self._eudev._lib, "udev_monitor_filter_add_" + whichone)
-		pars = [ ctypes.c_char_p(p) for p in pars ]
+		pars = [ ctypes.c_char_p(p.encode('utf-8')) if p is str else p for p in pars ]
 		self._keep_in_mem += pars
 		err = fn(self._monitor, *pars)
 		if err < 0:
@@ -313,12 +312,12 @@ class Monitor(object):
 			return None
 		
 		event = Monitor.DeviceEvent(
-			str(self._eudev._lib.udev_device_get_action(dev)),
-			str(self._eudev._lib.udev_device_get_devnode(dev)),
+			self._eudev._lib.udev_device_get_action(dev),
+			self._eudev._lib.udev_device_get_devnode(dev),
 			self._eudev._lib.udev_device_get_is_initialized(dev) == 1,
-			str(self._eudev._lib.udev_device_get_subsystem(dev)),
-			str(self._eudev._lib.udev_device_get_devtype(dev)),
-			str(self._eudev._lib.udev_device_get_syspath(dev)),
+			self._eudev._lib.udev_device_get_subsystem(dev),
+			self._eudev._lib.udev_device_get_devtype(dev),
+			self._eudev._lib.udev_device_get_syspath(dev),
 			self._eudev._lib.udev_device_get_devnum(dev),
 		)
 		
@@ -328,11 +327,11 @@ class Monitor(object):
 
 if __name__ == "__main__":
 	udev = Eudev()
-	en = udev.enumerate().match_subsystem("hidraw")
+	en = udev.enumerate().match_subsystem(b"hidraw")
 	for i in en:
 		print(i)
 	
-	m = udev.monitor().match_subsystem("hidraw").start()
+	m = udev.monitor().match_subsystem(b"hidraw").start()
 	while True:
 		d = m.receive_device()
 		if d:
