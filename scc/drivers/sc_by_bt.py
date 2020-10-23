@@ -105,7 +105,7 @@ class Driver(object):
 		if hidrawname is None:
 			return None
 		try:
-			dev = HIDRaw(open(os.path.join("/dev/", hidrawname), "w+b"))
+			dev = HIDRaw(open(os.path.join(b"/dev/", hidrawname), "w+b"))
 			return SCByBt(self, syspath, dev)
 		except Exception as e:
 			log.exception(e)
@@ -207,7 +207,7 @@ class SCByBt(SCController):
 	
 	def read_serial(self):	
 		self._serial = (self._hidrawdev
-			.getPhysicalAddress().replace(":", ""))
+			.getPhysicalAddress().replace(b":", b""))
 	
 	
 	def send_control(self, index, data):

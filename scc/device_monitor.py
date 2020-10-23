@@ -109,9 +109,9 @@ class DeviceMonitor(Monitor):
 		
 		for i in range(cl.conn_num):
 			ci = cl.conn_info[i]
-			id = "hci%s:%s" % (cl.dev_id, ci.handle)
+			id = "hci{}:{}".format(cl.dev_id, ci.handle).encode('utf-8')
 			address = ":".join([ hex(x).lstrip("0x").zfill(2).upper() for x in reversed(ci.bdaddr) ])
-			self.bt_addresses[id] = address
+			self.bt_addresses[id] = address.encode('utf-8').lower()
 	
 	
 	def _dev_for_hci(self, syspath):
@@ -128,7 +128,7 @@ class DeviceMonitor(Monitor):
 				node_addr = DeviceMonitor._find_bt_address(node)
 			except IOError:
 				continue
-			if node_addr == addr:
+			if node_addr is not None and node_addr.lower() == addr:
 				return node
 		return None
 	
