@@ -126,9 +126,10 @@ def nameof(e):
 
 def shjoin(lst):
 	""" Joins list into shell-escaped, utf-8 encoded string """
-	s = [ bytes(x, 'utf-8') for x in lst ]
+	print(lst)
+	s = [ bytes(str(x), 'utf-8') if not isinstance(x, bytes) else x for x in lst ]
 	#   - escape quotes
-	s = [ x if (b'"' in x or b"'" in x) else x for x in s ]
+	#s = [ x.encode('string_escape') if (b'"' in x or b"'" in x) else x for x in s ]
 	#   - quote strings with spaces
 	s = [ b"'%s'" % (x,) if b" " in x else x for x in s ]
 	return b" ".join(s)
@@ -136,10 +137,13 @@ def shjoin(lst):
 
 def shsplit(s):
 	""" Returs original list from what shjoin returned """
+	print(s)
 	lex = shlex.shlex(s, posix=True)
 	lex.escapedquotes = b'"\''
 	lex.whitespace_split = True
-	return [ x for x in list(lex) ]
+	l = list(lex)
+	print(l)
+	return l
 
 
 def static_vars(**kwargs):

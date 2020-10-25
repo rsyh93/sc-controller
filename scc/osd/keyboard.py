@@ -15,7 +15,7 @@ from builtins import object
 from scc.tools import _, set_logging_level
 
 from gi.repository import Gtk, Gdk, GdkX11, GObject, GLib, GdkPixbuf, cairo
-from xml.etree import ElementTree as ET
+import lxml.etree as ET
 from scc.constants import LEFT, RIGHT, STICK, STICK_PAD_MIN, STICK_PAD_MAX
 from scc.constants import STICK_PAD_MIN_HALF, STICK_PAD_MAX_HALF, CPAD
 from scc.constants import SCButtons, ControllerFlags
@@ -74,7 +74,7 @@ class KeyboardImage(Gtk.DrawingArea):
 		self.color_text = 1, 1, 1, 1
 		
 		self.overlay = SVGWidget(image, False)
-		self.tree = ET.fromstring(self.overlay.current_svg.encode("utf-8"))
+		self.tree = ET.fromstring(self.overlay.current_svg)
 		SVGWidget.find_areas(self.tree, None, areas, get_colors=True)
 		
 		self._hilight = ()
@@ -126,7 +126,6 @@ class KeyboardImage(Gtk.DrawingArea):
 	def get_limit(self, id):
 		a = SVGEditor.find_by_id(self.tree, id)
 		width, height = 0, 0
-		if not hasattr(a, "parent"): a.parent = None
 		x, y = SVGEditor.get_translation(a, absolute=True)
 		if 'width' in a.attrib:  width = float(a.attrib['width'])
 		if 'height' in a.attrib: height = float(a.attrib['height'])
@@ -140,7 +139,7 @@ class KeyboardImage(Gtk.DrawingArea):
 		into "symbolic" image by inverting colors of pixels where opacity is
 		greater than threshold.
 		"""
-		pixels = [ ord(x) for x in buf.get_pixels() ]
+		pixels = [ x for x in buf.get_pixels() ]
 		bpp = 4 if buf.get_has_alpha() else 3
 		w, h = buf.get_width(), buf.get_height()
 		stride = buf.get_rowstride()
@@ -150,7 +149,7 @@ class KeyboardImage(Gtk.DrawingArea):
 				pixels[i + 1] = 255 - pixels[i + 1]
 				pixels[i + 2] = 255 - pixels[i + 2]
 		
-		pixels = b"".join([ chr(x) for x in pixels])
+		pixels = b"".join([ bytes(x) for x in pixels])
 		rv = GdkPixbuf.Pixbuf.new_from_data(
 			pixels,
 			buf.get_colorspace(),
@@ -217,6 +216,9 @@ class KeyboardImage(Gtk.DrawingArea):
 			
 			# label
 			if button.label:
+				# TODO find out why labels are bytes in the first place, the take off this bandaid
+				if isinstance(button.label, bytes):
+					button.label = button.label.decode('utf-8')
 				ctx.set_source_rgba(*self.color_text)
 				extents = ctx.text_extents(button.label)
 				x_bearing, y_bearing, width, trash, x_advance, y_advance = extents

@@ -116,7 +116,7 @@ class OSDDaemon(object):
 		if m.get_exit_code() == 0:
 			# 0 means that user selected item and confirmed selection
 			self.daemon.request(
-				'Selected: %s' % ( shjoin([
+				b'Selected: %s' % ( shjoin([
 					m.get_menuid(), m.get_selected_item_id()
 				])),
 				lambda *a : False, lambda *a : False)

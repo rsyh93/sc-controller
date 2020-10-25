@@ -360,8 +360,8 @@ class Action(object):
 		before-last parameter is default, it's removed as well; et cetera et
 		cetera until first non-default parameter is reached.
 		
-		if as_strings is set to True, all parameters are converted to apropriate
-		strings (x.name for enums, x.encode('string_escape') for strings, 
+		if as_strings is set to True, all parameters are converted to appropriate
+		strings (x.name for enums, x.encode('string_escape') for strings,
 		"""
 		argspec = inspect.getargspec(self.__class__.__init__)
 		required_count = len(argspec.args) - len(argspec.defaults) - 1
